@@ -1,0 +1,563 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-display: "DM Serif Display", serif;
+  --font-serif: "DM Serif Display", serif;
+  --font-editorial: "Cormorant Garamond", serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --color-innovexa-bg: #F7F4EE;
+  --color-innovexa-bg-secondary: #EFEAE2;
+  --color-innovexa-bg-subtle: #EAE4D9;
+  --color-innovexa-bg-card: #FCFAF6;
+  --color-innovexa-sidebar: #20202A;
+  --color-innovexa-sidebar-sec: #282834;
+  --color-innovexa-ink: #20202A;
+  --color-innovexa-ink-muted: #62616A;
+  --color-innovexa-ink-light: #8C8990;
+  --color-innovexa-border: #E3DED5;
+  --color-innovexa-border-subtle: #EDE8DF;
+  --color-innovexa-coral: #E66F82;
+  --color-innovexa-mint: #79C5B5;
+  --color-innovexa-lavender: #9D96D5;
+  --color-innovexa-blue: #8FA6DD;
+  --color-innovexa-peach: #E7B47C;
+  --color-innovexa-pink: #E9B7C1;
+  --color-innovexa-amber: #E8B653;
+  --color-innovexa-teal: #5AAFA3;
+  --color-innovexa-purple: #8875E8;
+}
+
+/* ============================================================
+   INNOVEXA — PREMIUM EDITORIAL INNOVATION NETWORK
+   Complete Design Token System
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* ── Core Backgrounds ── */
+    --color-bg:          #F7F4EE;
+    --color-surface:     #FCFAF6;
+    --color-bg-secondary:#EFEAE2;
+    --color-bg-subtle:   #EAE4D9;
+
+    /* ── Sidebar ── */
+    --color-sidebar:     #20202A;
+    --color-sidebar-sec: #282834;
+
+    /* ── Typography ── */
+    --color-ink:         #20202A;
+    --color-muted:       #62616A;
+    --color-light:       #8C8990;
+
+    /* ── Borders ── */
+    --color-border:      #E3DED5;
+    --color-border-sub:  #EDE8DF;
+
+    /* ── PRIMARY ACCENT — Editorial Coral ── */
+    --color-coral:       #E66F82;
+    --color-coral-hover: #D45F72;
+    --color-coral-subtle:rgba(230, 111, 130, 0.08);
+    --color-coral-border:rgba(230, 111, 130, 0.28);
+
+    /* ── SECONDARY ACCENTS ── */
+    --color-mint:        #79C5B5;
+    --color-lavender:    #9D96D5;
+    --color-blue:        #8FA6DD;
+    --color-peach:       #E7B47C;
+    --color-pink:        #E9B7C1;
+    --color-amber:       #E8B653;
+    --color-teal:        #5AAFA3;
+    --color-purple:      #8875E8;
+
+    /* ── Legacy compat ── */
+    --bg-primary:        var(--color-bg);
+    --bg-secondary:      var(--color-bg-secondary);
+    --bg-subtle:         var(--color-bg-subtle);
+    --bg-sidebar:        var(--color-sidebar);
+    --bg-sidebar-active: rgba(230, 111, 130, 0.12);
+    --border-sidebar:    #2C2C3A;
+    --ink-primary:       var(--color-ink);
+    --ink-muted:         var(--color-muted);
+    --ink-light:         var(--color-light);
+    --accent-coral:      var(--color-coral);
+    --accent-coral-hover:var(--color-coral-hover);
+    --accent-teal:       var(--color-teal);
+    --accent-purple:     var(--color-purple);
+    --accent-blue:       var(--color-blue);
+    --accent-amber:      var(--color-amber);
+    --accent-emerald:    var(--color-teal);
+    --accent-lavender:   var(--color-lavender);
+    --border-primary:    var(--color-border);
+    --border-subtle:     var(--color-border-sub);
+
+    /* ── Typography Tokens ── */
+    --font-display: "DM Serif Display", serif;
+    --font-editorial: "Cormorant Garamond", serif;
+    --font-serif:   "DM Serif Display", serif;
+    --font-body:    "Inter", sans-serif;
+    --font-sans:    "Inter", sans-serif;
+    --font-mono:    "IBM Plex Mono", monospace;
+
+    /* ── Spacing ── */
+    --sidebar-width: 260px;
+
+    /* ── Radius ── */
+    --radius-card:    12px;
+    --radius-input:   10px;
+    --radius-button:  10px;
+    --radius-pill:    999px;
+  }
+}
+
+/* ============================================================
+   GLOBAL TYPOGRAPHY RULES & ENFORCED HIERARCHY
+   ============================================================ */
+
+html,
+body,
+#root {
+  font-family: var(--font-body) !important;
+  color: var(--color-ink);
+  background-color: var(--color-bg);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+}
+
+button {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+p,
+.body-text {
+  font-family: var(--font-body);
+  line-height: 1.6;
+  color: #62616A;
+}
+
+/* 6. MAIN HEADINGS MUST USE DM SERIF DISPLAY, FONT-WEIGHT: 400 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.editorial-heading {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+
+/* 7. HERO HEADINGS */
+.hero-editorial-title {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  font-size: clamp(3.5rem, 7vw, 7rem) !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.03em !important;
+}
+
+/* 8. ITALIC EDITORIAL TEXT (Cormorant Garamond) */
+.editorial-italic,
+.italic-editorial,
+.font-editorial {
+  font-family: var(--font-editorial) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  color: #E66F82 !important;
+}
+
+/* 9. SECTION LABELS & TECHNICAL METADATA (IBM Plex Mono) */
+.section-label,
+.mono-label,
+.card-meta {
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* 12. PROJECT TITLES */
+.project-title {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  font-size: clamp(28px, 4vw, 38px) !important;
+  line-height: 1.15 !important;
+}
+
+/* Fallback Utility Enforcements */
+.font-display {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+
+.font-serif {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+
+.font-sans,
+.font-body {
+  font-family: var(--font-body) !important;
+}
+
+.font-mono {
+  font-family: var(--font-mono) !important;
+}
+
+/* ============================================================
+   SCROLLBARS
+   ============================================================ */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
+::-webkit-scrollbar-thumb { background: #C8C2B7; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #A8A297; }
+
+/* ============================================================
+   SECTION LABEL SYSTEM
+   01 / SECTION NAME
+   ============================================================ */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-coral);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-label-muted {
+  color: var(--color-light);
+}
+
+.section-label-blue {
+  color: var(--color-blue);
+}
+
+.section-label-lavender {
+  color: var(--color-lavender);
+}
+
+/* ============================================================
+   CARD SYSTEM — Editorial 12px radius
+   ============================================================ */
+.editorial-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-card:hover {
+  border-color: #C9C3BA;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -8px rgba(32, 32, 42, 0.09);
+}
+
+/* Ledger cards with colored top border */
+.ledger-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  position: relative;
+}
+
+.ledger-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.ledger-card-coral::before  { background: var(--color-coral); }
+.ledger-card-mint::before   { background: var(--color-mint); }
+.ledger-card-blue::before   { background: var(--color-blue); }
+.ledger-card-lavender::before { background: var(--color-lavender); }
+.ledger-card-peach::before  { background: var(--color-peach); }
+.ledger-card-teal::before   { background: var(--color-teal); }
+.ledger-card-amber::before  { background: var(--color-amber); }
+
+/* Legacy compat aliases */
+.ledger-card-coral  { }
+.ledger-card-teal   { }
+.ledger-card-purple { }
+.ledger-card-emerald{ }
+
+/* Frosted panel */
+.glass-panel {
+  background: rgba(252, 250, 246, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(227, 222, 213, 0.8);
+}
+
+/* ============================================================
+   BUTTON SYSTEM
+   ============================================================ */
+
+/* Primary — Coral */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: var(--color-coral);
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-button);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.btn-primary:hover {
+  background-color: var(--color-coral-hover);
+  box-shadow: 0 4px 16px -4px rgba(230, 111, 130, 0.45);
+}
+.btn-primary:active { transform: scale(0.98); }
+
+/* Secondary — Bordered */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: transparent;
+  color: var(--color-ink);
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-button);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-secondary:hover {
+  background: var(--color-bg-subtle);
+  border-color: #C5BFB5;
+}
+
+/* Tertiary — Text only */
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--color-coral);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s;
+}
+.btn-text:hover { opacity: 0.75; }
+
+/* ============================================================
+   FORM INPUTS — Editorial Style
+   ============================================================ */
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding: 0.625rem 0.875rem;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.form-input::placeholder { color: var(--color-light); }
+.form-input:focus {
+  border-color: var(--color-coral);
+  box-shadow: 0 0 0 3px rgba(230, 111, 130, 0.1);
+}
+
+/* ============================================================
+   BADGE SYSTEM
+   ============================================================ */
+.badge-coral {
+  background-color: rgba(230, 111, 130, 0.1);
+  color: #C45068;
+  border: 1px solid rgba(230, 111, 130, 0.22);
+}
+.badge-purple {
+  background-color: rgba(136, 117, 232, 0.1);
+  color: #6855CC;
+  border: 1px solid rgba(136, 117, 232, 0.22);
+}
+.badge-blue {
+  background-color: rgba(143, 166, 221, 0.12);
+  color: #5573BB;
+  border: 1px solid rgba(143, 166, 221, 0.25);
+}
+.badge-teal {
+  background-color: rgba(90, 175, 163, 0.1);
+  color: #3D8E84;
+  border: 1px solid rgba(90, 175, 163, 0.22);
+}
+.badge-amber {
+  background-color: rgba(232, 182, 83, 0.1);
+  color: #A87C10;
+  border: 1px solid rgba(232, 182, 83, 0.25);
+}
+.badge-lavender {
+  background-color: rgba(157, 150, 213, 0.1);
+  color: #6E66B8;
+  border: 1px solid rgba(157, 150, 213, 0.22);
+}
+.badge-mint {
+  background-color: rgba(121, 197, 181, 0.1);
+  color: #3D8F80;
+  border: 1px solid rgba(121, 197, 181, 0.22);
+}
+
+/* ============================================================
+   LOADING SKELETONS
+   ============================================================ */
+@keyframes skeleton-wave {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-subtle) 25%,
+    rgba(239, 234, 226, 0.8) 50%,
+    var(--color-bg-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   GRAIN BACKGROUND TEXTURE
+   ============================================================ */
+.grain-bg {
+  background-image: radial-gradient(rgba(32, 32, 42, 0.025) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* ============================================================
+   SIDEBAR ACTIVE STATE
+   ============================================================ */
+.sidebar-active {
+  background: rgba(230, 111, 130, 0.12);
+  border: 1px solid rgba(230, 111, 130, 0.28);
+  color: var(--color-coral);
+}
+
+/* ============================================================
+   MISC UTILITIES
+   ============================================================ */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Editorial heading utility */
+.editorial-heading {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Coral italic accent */
+.editorial-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--color-coral);
+}
+
+/* Divider with label */
+.divider-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-light);
+}
+.divider-label::before,
+.divider-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* Status dot */
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Animation: pulse-slow */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 2.5s ease-in-out infinite;
+}
+
+/* Shadow tokens */
+.shadow-subtle {
+  box-shadow: 0 2px 8px -2px rgba(32, 32, 42, 0.05), 0 1px 3px -1px rgba(32, 32, 42, 0.03);
+}
+.shadow-card {
+  box-shadow: 0 4px 18px -3px rgba(32, 32, 42, 0.07), 0 1px 4px -1px rgba(32, 32, 42, 0.04);
+}
+.shadow-float {
+  box-shadow: 0 16px 40px -12px rgba(32, 32, 42, 0.14), 0 0 0 1px rgba(32, 32, 42, 0.04);
+}
+.shadow-glow-coral {
+  box-shadow: 0 4px 22px -6px rgba(230, 111, 130, 0.42);
+}
