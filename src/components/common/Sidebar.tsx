@@ -12,6 +12,8 @@ import {
   X,
   BrainCircuit,
   GitBranch,
+  Briefcase,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useProjects } from '../../context/ProjectContext';
@@ -34,16 +36,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const unreadNotifs = notifications.filter(n => !n.is_read).length;
 
+  const isAdminUser = Boolean(
+    user?.roles?.includes('admin') || 
+    user?.username?.includes('admin') || 
+    user?.id?.startsWith('demo-admin')
+  );
+
   const navItems = [
     { id: 'home',                label: 'HOME',        icon: Home },
     { id: 'explore',             label: 'EXPLORE',     icon: Compass },
     { id: 'community',           label: 'COMMUNITY',   icon: Users },
+    { id: 'investors',           label: 'INVESTORS',   icon: Briefcase },
     { id: 'create',              label: 'CREATE IDEA', icon: PlusCircle },
     { id: 'insights',            label: 'AI RESEARCH', icon: BrainCircuit },
     { id: 'ai-project-analyzer', label: 'AI ANALYZER', icon: Sparkles },
     { id: 'roadmap',             label: 'ROADMAP',     icon: GitBranch },
     { id: 'my-projects',         label: 'MY PROJECTS', icon: FolderKanban },
     { id: 'reviews',             label: 'REVIEWS',     icon: CheckSquare, badge: unreadNotifs > 0 ? `${unreadNotifs}` : null },
+    ...(isAdminUser ? [{ id: 'admin', label: 'ADMIN CONSOLE', icon: ShieldCheck }] : [{ id: 'admin', label: 'ADMIN', icon: ShieldCheck }]),
     { id: 'profile',             label: 'PROFILE',     icon: User },
     { id: 'settings',            label: 'SETTINGS',    icon: Settings },
   ];

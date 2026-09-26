@@ -26,6 +26,8 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SmartReviewPage } from './pages/SmartReviewPage';
 import { ValidationInsightsPage } from './pages/ValidationInsightsPage';
+import { InvestorPage } from './pages/InvestorPage';
+import { AdminPage } from './pages/AdminPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 // Protected Route Guard (with fallback support for offline/demo experience)
@@ -93,6 +95,8 @@ export function App() {
                   <Route path="/projects/:id/analyze" element={<AIProjectAnalyzerPage />} />
                   <Route path="/compare" element={<ExplorePage />} />
                   <Route path="/community" element={<CommunityPage />} />
+                  <Route path="/investors" element={<InvestorPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   

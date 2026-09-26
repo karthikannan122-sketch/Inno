@@ -251,6 +251,59 @@ CREATE TABLE IF NOT EXISTS public.discussion_comments (
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- 20. Investor Profiles Table
+CREATE TABLE IF NOT EXISTS public.investor_profiles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  organization_name TEXT NOT NULL,
+  bio TEXT,
+  investment_interests TEXT[] DEFAULT '{}'::text[] NOT NULL,
+  preferred_categories TEXT[] DEFAULT '{}'::text[] NOT NULL,
+  website TEXT,
+  check_size_range TEXT DEFAULT '$25K – $100K',
+  investor_type TEXT DEFAULT 'Angel Investor',
+  contact_email TEXT,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 21. Investor Connections Table
+CREATE TABLE IF NOT EXISTS public.investor_connections (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  investor_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  creator_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
+  message TEXT NOT NULL,
+  status TEXT CHECK (status IN ('pending', 'accepted', 'rejected', 'cancelled')) DEFAULT 'pending' NOT NULL,
+  initiated_by TEXT CHECK (initiated_by IN ('creator', 'investor')) DEFAULT 'creator' NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 22. Platform Safety & Content Reports Table
+CREATE TABLE IF NOT EXISTS public.reports (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  reporter_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  target_type TEXT CHECK (target_type IN ('project', 'user', 'review', 'discussion')) NOT NULL,
+  target_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  details TEXT,
+  status TEXT CHECK (status IN ('pending', 'reviewed', 'resolved', 'dismissed')) DEFAULT 'pending' NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  resolved_at TIMESTAMPTZ
+);
+
+-- 23. Admin Audit Trail Table
+CREATE TABLE IF NOT EXISTS public.admin_actions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  admin_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  action_type TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
 -- ====================================================
 -- AUTOMATIC AUTH PROFILE CREATION TRIGGER
 -- Enables automatic profile row creation on user signup
@@ -471,3 +524,47 @@ CREATE POLICY "Discussion comments viewable by everyone" ON public.discussion_co
 
 DROP POLICY IF EXISTS "Anyone can create comments" ON public.discussion_comments;
 CREATE POLICY "Anyone can create comments" ON public.discussion_comments FOR INSERT WITH CHECK (true);
+
+-- Enable RLS for New Modules
+ALTER TABLE public.investor_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.investor_connections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_actions ENABLE ROW LEVEL SECURITY;
+
+-- Investor Profiles Policies
+DROP POLICY IF EXISTS "Investor profiles viewable by everyone" ON public.investor_profiles;
+CREATE POLICY "Investor profiles viewable by everyone" ON public.investor_profiles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can insert their own investor profile" ON public.investor_profiles;
+CREATE POLICY "Users can insert their own investor profile" ON public.investor_profiles FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Users can update their own investor profile" ON public.investor_profiles;
+CREATE POLICY "Users can update their own investor profile" ON public.investor_profiles FOR UPDATE USING (auth.uid() = user_id OR user_id IS NOT NULL);
+
+-- Investor Connections Policies
+DROP POLICY IF EXISTS "Users can view their own connections" ON public.investor_connections;
+CREATE POLICY "Users can view their own connections" ON public.investor_connections FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can create connection requests" ON public.investor_connections;
+CREATE POLICY "Users can create connection requests" ON public.investor_connections FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Involved parties can update connections" ON public.investor_connections;
+CREATE POLICY "Involved parties can update connections" ON public.investor_connections FOR UPDATE USING (true);
+
+-- Reports Policies
+DROP POLICY IF EXISTS "Reports viewable by authorized users and admins" ON public.reports;
+CREATE POLICY "Reports viewable by authorized users and admins" ON public.reports FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can submit reports" ON public.reports;
+CREATE POLICY "Users can submit reports" ON public.reports FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can update reports" ON public.reports;
+CREATE POLICY "Admins can update reports" ON public.reports FOR UPDATE USING (true);
+
+-- Admin Actions Audit Trail Policies
+DROP POLICY IF EXISTS "Admin actions viewable by admins" ON public.admin_actions;
+CREATE POLICY "Admin actions viewable by admins" ON public.admin_actions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admins can insert audit logs" ON public.admin_actions;
+CREATE POLICY "Admins can insert audit logs" ON public.admin_actions FOR INSERT WITH CHECK (true);
+

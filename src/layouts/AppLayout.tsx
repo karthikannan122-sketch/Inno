@@ -36,6 +36,8 @@ export const AppLayout: React.FC = () => {
     else if (view === 'compare')   navigate('/explore');
     else if (view === 'roadmap')   navigate('/roadmap');
     else if (view === 'community') navigate('/community');
+    else if (view === 'investors') navigate('/investors');
+    else if (view === 'admin')     navigate('/admin');
     else if (view === 'profile')   navigate('/profile');
     else if (view === 'settings')  navigate('/settings');
     else if (view === 'project-detail' && id) navigate(`/projects/${id}`);

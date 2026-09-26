@@ -27,6 +27,7 @@ export interface Profile {
   reputation_score: number;
   interests?: string[];
   roles?: string[];
+  is_suspended?: boolean;
   created_at: string;
 }
 
@@ -40,6 +41,87 @@ export interface UserRole {
   id: string;
   user_id: string;
   role: string;
+}
+
+export interface InvestorProfile {
+  id: string;
+  user_id: string;
+  organization_name: string;
+  bio?: string;
+  investment_interests: string[];
+  preferred_categories: string[];
+  website?: string;
+  check_size_range?: string;
+  investor_type?: string;
+  contact_email?: string;
+  user_name?: string;
+  user_avatar?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type ConnectionStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
+
+export interface InvestorConnection {
+  id: string;
+  investor_id: string;
+  creator_id: string;
+  project_id: string;
+  message: string;
+  status: ConnectionStatus;
+  initiated_by?: 'creator' | 'investor';
+  project_title?: string;
+  project_category?: string;
+  creator_name?: string;
+  creator_avatar?: string;
+  investor_name?: string;
+  investor_org?: string;
+  investor_avatar?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type ReportTargetType = 'project' | 'user' | 'review' | 'discussion';
+export type ReportStatus = 'pending' | 'reviewed' | 'resolved' | 'dismissed';
+
+export interface ReportItem {
+  id: string;
+  reporter_id: string;
+  reporter_name?: string;
+  target_type: ReportTargetType;
+  target_id: string;
+  target_title?: string;
+  reason: string;
+  details?: string;
+  status: ReportStatus;
+  created_at: string;
+  resolved_at?: string;
+}
+
+export interface AdminAction {
+  id: string;
+  admin_id: string;
+  admin_name?: string;
+  action_type: string;
+  target_type: string;
+  target_id: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface AdminDashboardStats {
+  total_users: number;
+  total_projects: number;
+  published_projects: number;
+  draft_projects: number;
+  validating_projects: number;
+  total_reviews: number;
+  total_reports: number;
+  pending_reports: number;
+  total_discussions: number;
+  total_investors: number;
+  total_connections: number;
+  ai_requests_count: number;
 }
 
 export interface Project {
@@ -305,7 +387,15 @@ export interface FeedbackDecision {
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'review_received' | 'project_matched' | 'version_created' | 'discussion_reply' | 'system';
+  type: 
+    | 'review_received' 
+    | 'project_matched' 
+    | 'version_created' 
+    | 'discussion_reply' 
+    | 'investor_connection_received' 
+    | 'investor_connection_status' 
+    | 'admin_notice' 
+    | 'system';
   title: string;
   message: string;
   link: string;
