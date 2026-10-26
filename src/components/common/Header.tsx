@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell, PlusCircle, Menu, X, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useProjects } from '../../context/ProjectContext';
+import { useBackendStatus } from '../../lib/apiConfig';
 import { Badge } from './Badge';
 
 interface HeaderProps {
@@ -14,6 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onToggleSidebar }) =
   const routerNavigate = useNavigate();
   const { user } = useAuth();
   const { notifications, markNotificationRead, projects } = useProjects();
+  const { report: backendStatus } = useBackendStatus(30000);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -203,6 +205,23 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onToggleSidebar }) =
 
       {/* ── Right: Notifications + CTA ── */}
       <div className="flex items-center gap-3 ml-4 shrink-0">
+
+        {/* Live Backend Connection Indicator */}
+        <button
+          onClick={() => onNavigate('settings')}
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-innovexa-border bg-white/80 hover:bg-white transition-all shadow-subtle group"
+          title={`Backend: ${backendStatus.backend_url} (${backendStatus.online ? 'Online' : 'Reconnecting...'})`}
+        >
+          <span className={`w-2 h-2 rounded-full ${backendStatus.online ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
+          <span className="font-mono text-[10px] font-bold text-innovexa-ink group-hover:text-innovexa-coral transition-colors">
+            {backendStatus.online ? 'BACKEND LIVE' : 'CONNECTING...'}
+          </span>
+          {backendStatus.latencyMs !== undefined && (
+            <span className="font-mono text-[9px] text-[#8E90A2]">
+              {backendStatus.latencyMs}ms
+            </span>
+          )}
+        </button>
 
         {/* Notifications */}
         <div ref={notifRef} className="relative">

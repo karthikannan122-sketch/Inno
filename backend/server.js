@@ -35,6 +35,262 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Supabase PostgreSQL Configuration
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://stfpitwhsemzpnevvheq.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+
+// Helper for Supabase REST API calls
+const supabaseFetch = async (endpoint, options = {}) => {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${SUPABASE_URL}/rest/v1${cleanEndpoint}`;
+  const headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": `Bearer ${SUPABASE_KEY}`,
+    "Content-Type": "application/json",
+    ...(options.prefer ? { "Prefer": options.prefer } : {}),
+    ...(options.headers || {})
+  };
+  return fetch(url, { ...options, headers });
+};
+
+// Comprehensive Status & Backend Diagnostic Report
+app.get("/api/status", async (req, res) => {
+  let dbStatus = "unreachable";
+  let projectCount = 0;
+  try {
+    const dbRes = await supabaseFetch("/projects?select=id&limit=1", {
+      headers: { "Prefer": "count=exact" }
+    });
+    if (dbRes.ok) {
+      dbStatus = "connected";
+      const range = dbRes.headers.get("content-range");
+      projectCount = range ? parseInt(range.split("/")[1] || "0", 10) : 1;
+    }
+  } catch (e) {
+    dbStatus = "error: " + e.message;
+  }
+
+  res.json({
+    online: true,
+    service: "innovexa-backend",
+    backend_url: "https://inno-backend-0pfj.onrender.com",
+    environment: process.env.NODE_ENV || "production",
+    uptime: process.uptime(),
+    database: {
+      status: dbStatus,
+      type: "Supabase PostgreSQL",
+      project_count: projectCount,
+      url: SUPABASE_URL
+    },
+    ai_engine: {
+      status: getGeminiApiKey() ? "ready (gemini-1.5-flash)" : "fallback-mode"
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// GET /api/projects — Retrieve all projects from PostgreSQL database
+app.get("/api/projects", async (req, res) => {
+  try {
+    const dbRes = await supabaseFetch("/projects?select=*,project_tags(tag),profiles:owner_id(full_name,avatar_url)&order=created_at.desc");
+    if (dbRes.ok) {
+      const data = await dbRes.json();
+      const formatted = (data || []).map(p => ({
+        ...p,
+        tags: p.project_tags ? p.project_tags.map(t => t.tag) : (p.tags || [p.category || 'Technology']),
+        owner_name: p.profiles?.full_name || p.owner_name || 'Community Innovator',
+        owner_avatar: p.profiles?.avatar_url || p.owner_avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        readiness_score: p.validation_score || p.readiness_score || 75
+      }));
+      return res.json({ success: true, count: formatted.length, data: formatted });
+    }
+    res.json({ success: true, count: 0, data: [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/projects/:id — Single project details
+app.get("/api/projects/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dbRes = await supabaseFetch(`/projects?id=eq.${id}&select=*,project_tags(tag),profiles:owner_id(full_name,avatar_url)`);
+    if (dbRes.ok) {
+      const data = await dbRes.json();
+      if (data && data.length > 0) {
+        const p = data[0];
+        const formatted = {
+          ...p,
+          tags: p.project_tags ? p.project_tags.map(t => t.tag) : (p.tags || []),
+          owner_name: p.profiles?.full_name || p.owner_name || 'Community Innovator',
+          owner_avatar: p.profiles?.avatar_url || p.owner_avatar || '',
+          readiness_score: p.validation_score || p.readiness_score || 75
+        };
+        return res.json({ success: true, data: formatted });
+      }
+    }
+    res.status(404).json({ success: false, error: "Project not found" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/projects — Create and persist a new project to PostgreSQL database
+app.post("/api/projects", async (req, res) => {
+  try {
+    const payload = req.body || {};
+    let ownerId = payload.owner_id;
+    const isValidUuid = (str) => Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+    if (!isValidUuid(ownerId)) {
+      const profRes = await supabaseFetch("/profiles?select=id&limit=1");
+      if (profRes.ok) {
+        const profs = await profRes.json();
+        if (profs && profs.length > 0) ownerId = profs[0].id;
+      }
+    }
+
+    const projectRecord = {
+      owner_id: ownerId || "00000000-0000-0000-0000-000000000001",
+      title: payload.title || "Untitled Innovation",
+      project_type: payload.project_type || "idea",
+      category: payload.category || "Technology",
+      problem_title: payload.problem_title || payload.title,
+      problem_description: payload.problem_description || payload.problem_title,
+      solution_description: payload.solution_description || "",
+      target_audience: payload.target_audience || "Early Adopters",
+      value_proposition: payload.value_proposition || "",
+      differentiation: payload.differentiation || "",
+      live_url: payload.live_url || null,
+      github_url: payload.github_url || null,
+      demo_url: payload.demo_url || null,
+      cover_image_url: payload.cover_image_url || null,
+      status: payload.status || "under_review",
+      validation_status: payload.validation_status || "idea",
+      visibility: payload.visibility || "public",
+      current_version: payload.current_version || 1,
+      validation_score: payload.readiness_score || 70
+    };
+
+    const insertRes = await supabaseFetch("/projects", {
+      method: "POST",
+      prefer: "return=representation",
+      body: JSON.stringify(projectRecord)
+    });
+
+    if (insertRes.ok) {
+      const inserted = await insertRes.json();
+      const created = Array.isArray(inserted) ? inserted[0] : inserted;
+
+      if (payload.tags && Array.isArray(payload.tags) && created?.id) {
+        for (const tag of payload.tags) {
+          await supabaseFetch("/project_tags", {
+            method: "POST",
+            body: JSON.stringify({ project_id: created.id, tag })
+          });
+        }
+      }
+
+      return res.json({ success: true, data: created });
+    }
+
+    const errText = await insertRes.text();
+    res.status(400).json({ success: false, error: errText });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/projects/:id — Update project in PostgreSQL database
+app.put("/api/projects/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = { ...(req.body || {}) };
+    delete updates.id;
+    delete updates.created_at;
+    updates.updated_at = new Date().toISOString();
+
+    const updateRes = await supabaseFetch(`/projects?id=eq.${id}`, {
+      method: "PATCH",
+      prefer: "return=representation",
+      body: JSON.stringify(updates)
+    });
+
+    if (updateRes.ok) {
+      const data = await updateRes.json();
+      return res.json({ success: true, data: data[0] });
+    }
+    const errText = await updateRes.text();
+    res.status(400).json({ success: false, error: errText });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/projects/:id — Delete project from database
+app.delete("/api/projects/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const delRes = await supabaseFetch(`/projects?id=eq.${id}`, {
+      method: "DELETE"
+    });
+    if (delRes.ok) {
+      return res.json({ success: true, message: "Project deleted successfully" });
+    }
+    res.status(400).json({ success: false, error: await delRes.text() });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/reviews — Retrieve community reviews
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const { projectId } = req.query;
+    const endpoint = projectId 
+      ? `/reviews?project_id=eq.${projectId}&select=*,profiles:reviewer_id(full_name,avatar_url)&order=created_at.desc`
+      : `/reviews?select=*,profiles:reviewer_id(full_name,avatar_url)&order=created_at.desc&limit=50`;
+    const dbRes = await supabaseFetch(endpoint);
+    if (dbRes.ok) {
+      const data = await dbRes.json();
+      return res.json({ success: true, count: data.length, data });
+    }
+    res.json({ success: true, count: 0, data: [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/reviews — Submit review to database
+app.post("/api/reviews", async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const reviewRecord = {
+      project_id: payload.project_id || payload.projectId,
+      reviewer_id: payload.reviewer_id || payload.reviewerId || "00000000-0000-0000-0000-000000000001",
+      problem_relevance: payload.problem_relevance || payload.problemRelevance || "yes",
+      solution_clarity: payload.solution_clarity || payload.solutionClarity || "yes",
+      usefulness: payload.usefulness || "yes",
+      comment: payload.comment || payload.suggestion || "",
+      review_type: payload.review_type || payload.reviewType || "constructive",
+      quality_score: payload.quality_score || 5
+    };
+
+    const insertRes = await supabaseFetch("/reviews", {
+      method: "POST",
+      prefer: "return=representation",
+      body: JSON.stringify(reviewRecord)
+    });
+
+    if (insertRes.ok) {
+      const inserted = await insertRes.json();
+      return res.json({ success: true, data: Array.isArray(inserted) ? inserted[0] : inserted });
+    }
+    res.status(400).json({ success: false, error: await insertRes.text() });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Helper for Gemini AI calls
 const getGeminiApiKey = () => {
   return process.env.GEMINI_API_KEY || process.env.VITE_AI_API_KEY || process.env.AI_API_KEY || "";

@@ -10,10 +10,15 @@ import {
   Check, 
   Save, 
   Database,
-  Key
+  Key,
+  Server,
+  RefreshCw,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { isSupabaseConfigured, STORAGE_KEYS } from '../lib/supabase';
+import { useBackendStatus, checkBackendHealth, BACKEND_URL } from '../lib/apiConfig';
 import { SlideUp, FadeIn } from '../components/common/MotionWrapper';
 import { Badge } from '../components/common/Badge';
 
@@ -38,6 +43,30 @@ export const SettingsPage: React.FC = () => {
 
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Live Backend Monitoring
+  const { report: backendStatus, recheck: recheckBackend, loading: checkingBackend } = useBackendStatus(20000);
+  const [testingPing, setTestingPing] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const handleTestBackend = async () => {
+    setTestingPing(true);
+    setTestResult(null);
+    const report = await checkBackendHealth();
+    await recheckBackend();
+    setTestingPing(false);
+    if (report.online) {
+      setTestResult({
+        ok: true,
+        msg: `Connected to ${report.backend_url} (${report.latencyMs || 0}ms latency). Database: ${report.database?.status || 'Active'}.`
+      });
+    } else {
+      setTestResult({
+        ok: false,
+        msg: `Connection test failed: ${report.error || 'Server starting up. Please allow 15 seconds on Render free tier.'}`
+      });
+    }
+  };
 
   const handleSaveAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,31 +346,109 @@ export const SettingsPage: React.FC = () => {
             </h3>
 
             <div className="space-y-4 text-xs">
+              {/* Render Express API Backend */}
+              <div className="p-5 rounded-2xl bg-white border border-innovexa-border shadow-subtle space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-xl bg-[#6875E8]/10 text-[#6875E8] shrink-0 mt-0.5">
+                      <Server className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-bold text-sm text-innovexa-ink flex items-center gap-2">
+                        <span>Express API Backend (Render)</span>
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                          backendStatus.online 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${backendStatus.online ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                          {backendStatus.online ? 'LIVE ONLINE' : 'CONNECTING'}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[11px] text-[#555768]">
+                        Endpoint:{' '}
+                        <a 
+                          href={backendStatus.backend_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-[#6875E8] underline hover:text-[#525ec2]"
+                        >
+                          {backendStatus.backend_url}
+                        </a>
+                      </div>
+                      <p className="text-innovexa-ink-muted text-xs leading-relaxed">
+                        Powers project CRUD operations, real-time reviews sync, Google Gemini 1.5 search grounding, and smart validation clustering.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status details & ping test */}
+                <div className="pt-2 border-t border-innovexa-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 font-mono text-[11px] text-[#8E90A2]">
+                    {backendStatus.latencyMs !== undefined && (
+                      <span>Latency: <strong className="text-innovexa-ink">{backendStatus.latencyMs}ms</strong></span>
+                    )}
+                    {backendStatus.database && (
+                      <span>Database: <strong className="text-emerald-700">{backendStatus.database.status}</strong></span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleTestBackend}
+                    disabled={testingPing}
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-innovexa-ink hover:bg-innovexa-ink/90 text-white font-mono text-xs font-bold transition-all disabled:opacity-50 shadow-subtle shrink-0"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${testingPing ? 'animate-spin' : ''}`} />
+                    <span>{testingPing ? 'Pinging Server...' : 'Test Connection Now'}</span>
+                  </button>
+                </div>
+
+                {/* Inline test message banner */}
+                {testResult && (
+                  <div className={`p-3 rounded-xl border text-xs font-mono flex items-start gap-2 ${
+                    testResult.ok 
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                      : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}>
+                    {testResult.ok ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    )}
+                    <span className="break-words">{testResult.msg}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Supabase Database */}
               <div className="p-4 rounded-2xl bg-innovexa-bg-subtle/50 border border-innovexa-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Database className="w-5 h-5 text-emerald-600" />
+                  <Database className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
-                    <div className="font-bold text-innovexa-ink">Supabase PostgreSQL & Auth</div>
+                    <div className="font-bold text-innovexa-ink">Supabase PostgreSQL & Row-Level Security</div>
                     <div className="text-innovexa-ink-muted">
                       {isSupabaseConfigured 
-                        ? 'Live Cloud Supabase instance connected.' 
+                        ? 'Live Cloud Supabase instance connected (stfpitwhsemzpnevvheq.supabase.co).' 
                         : 'Local resilient fallback storage active (ready for live keys).'}
                     </div>
                   </div>
                 </div>
-                <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase ${
+                <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase shrink-0 ${
                   isSupabaseConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
                 }`}>
                   {isSupabaseConfigured ? 'LIVE CLOUD' : 'LOCAL READY'}
                 </span>
               </div>
 
+              {/* AI Engine */}
               <div className="p-4 rounded-2xl bg-innovexa-bg-subtle/50 border border-innovexa-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Key className="w-5 h-5 text-innovexa-purple" />
+                  <Key className="w-5 h-5 text-innovexa-purple shrink-0" />
                   <div>
-                    <div className="font-bold text-innovexa-ink">AI Summary Engine (Optional)</div>
-                    <div className="text-innovexa-ink-muted">Rule-based aggregation active by default; AI API optional.</div>
+                    <div className="font-bold text-innovexa-ink">Google Gemini AI Engine</div>
+                    <div className="text-innovexa-ink-muted">Dual-pass grounded analysis with real-time web search citations.</div>
                   </div>
                 </div>
                 <Badge variant="purple">ACTIVE</Badge>

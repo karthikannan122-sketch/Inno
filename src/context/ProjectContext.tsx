@@ -19,6 +19,7 @@ import {
 } from '../types/database';
 import { SEED_PROJECTS, SEED_REVIEWS, SEED_VERSIONS, SEED_RELATIONSHIPS } from '../data/seedData';
 import { STORAGE_KEYS, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { getApiUrl } from '../lib/apiConfig';
 import { useAuth } from './AuthContext';
 
 interface ProjectContextType {
@@ -609,6 +610,43 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('innovexa_discussion_comments', JSON.stringify(comments));
   }, [comments]);
 
+  // ── Sync with Render Backend on Mount ──
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLiveBackendProjects = async () => {
+      try {
+        const res = await fetch(getApiUrl('/api/projects'));
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0 && isMounted) {
+            console.log(`[INNOVEXA] ✅ Synced ${json.data.length} live innovations from Render backend.`);
+            setProjects(prevLocal => {
+              const backendMap = new Map<string, Project>();
+              json.data.forEach((p: Project) => backendMap.set(p.id, p));
+              // Merge local projects (e.g. offline edits)
+              prevLocal.forEach(p => {
+                if (!backendMap.has(p.id)) {
+                  backendMap.set(p.id, p);
+                }
+              });
+              const merged = Array.from(backendMap.values());
+              try {
+                localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(merged));
+              } catch (_) {}
+              return merged;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[INNOVEXA] Render backend sync notice (resilient local cache):', err);
+      }
+    };
+
+    loadLiveBackendProjects();
+    return () => { isMounted = false; };
+  }, []);
+
   const getProjectById = (id: string) => {
     return projects.find(p => p.id === id);
   };
@@ -884,6 +922,13 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // Award Points for submitting a new innovation
       awardReputationPoints(50, `Submitted Innovation: "${newProject.title}"`);
+
+      // Async persist to Render backend
+      fetch(getApiUrl('/api/projects'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProject)
+      }).catch(e => console.warn('Render backend sync deferred:', e));
 
       return { project: newProject, error: null };
     } catch (err: any) {
