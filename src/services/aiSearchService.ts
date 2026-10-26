@@ -1,6 +1,7 @@
 import { Project } from '../types/database';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { SEED_PROJECTS } from '../data/seedData';
+import { getApiUrl } from '../lib/apiConfig';
 
 // Storage keys
 export const STORAGE_RECENT_SEARCHES = 'innovexa_ai_recent_searches';
@@ -626,7 +627,7 @@ async function generateResearchAnalysis(
       }))
     };
 
-    const res = await fetch('/api/ai-search', {
+    const res = await fetch(getApiUrl('/api/ai-search'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

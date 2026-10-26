@@ -224,6 +224,137 @@ Return strict JSON report.`;
   }
 });
 
+// 5. Smart Validation Loop: Aggregated Project Insights & Clustering
+app.post("/api/ai-validation-aggregate", async (req, res) => {
+  try {
+    const { project, reviews, individualAnalyses } = req.body || {};
+    const apiKey = getGeminiApiKey();
+
+    if (!apiKey) {
+      return res.status(200).json({ success: false, reason: "no_gemini_key_configured" });
+    }
+
+    const totalReviewsCount = Array.isArray(reviews) ? reviews.length : 0;
+    const reviewsContext = (reviews || []).slice(0, 50).map((r, idx) => {
+      const analysis = (individualAnalyses || []).find((a) => a.review_id === r.id);
+      return `Review #${idx + 1}:
+- Reaction: ${r.first_reaction || 'N/A'} | Relevance: ${r.problem_relevance || 'N/A'} | Value: ${r.solution_value || 'N/A'}
+- Improvements Selected: ${(r.selected_improvements || []).join(', ') || 'None'}
+- Comment: "${r.comment || r.suggestion || 'No comment'}"
+- Follow-up: "${r.follow_up_reason || 'N/A'}"
+- AI Extracted Concerns: ${(analysis?.detected_concerns || []).join('; ') || 'None'}
+- AI Extracted Suggestions: ${(analysis?.detected_suggestions || []).join('; ') || 'None'}`;
+    }).join('\n\n');
+
+    const prompt = `You are the INNOVEXA Chief Validation Analyst.
+Analyze aggregated community validation reviews for this project and produce actionable clusters and prioritized improvement recommendations.
+PROJECT:
+- Title: ${project?.title || 'Project'}
+- Category: ${project?.category || 'Technology'}
+- Problem: ${project?.problem_description || project?.problem_title || ''}
+- Solution: ${project?.solution_description || ''}
+- Target Audience: ${project?.target_audience || ''}
+
+TOTAL REVIEWS: ${totalReviewsCount}
+ALL RECENT REVIEWS:
+${reviewsContext || 'No reviews available yet.'}
+
+Return strict JSON conforming to:
+{
+  "positive_percentage": 75,
+  "neutral_percentage": 15,
+  "negative_percentage": 10,
+  "problem_relevance_rate": 82,
+  "solution_interest_rate": 78,
+  "top_positive_signals": ["High problem relevance validated by target audience", "Clear value proposition"],
+  "top_concerns": [{ "concern": "Onboarding friction", "mention_count": 5 }],
+  "top_suggestions": [{ "suggestion": "Provide quick start templates", "mention_count": 6 }],
+  "feedback_clusters": [{ "category": "UX & Onboarding", "mention_count": 7, "summary": "Multiple users requested guided templates", "sample_quotes": ["Setup took too many steps"], "sentiment": "neutral" }],
+  "improvement_recommendations": [{ "title": "Streamline Onboarding", "description": "Reduce setup friction", "reason": "Feedback signals", "source_review_count": 7, "priority": "high", "cluster_category": "UX & Onboarding" }],
+  "validation_summary": "Community validation shows strong interest in the core problem statement.",
+  "next_steps": ["Implement onboarding wizard", "Publish roadmap"]
+}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.1
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      return res.status(200).json({ success: false, reason: "gemini_api_error" });
+    }
+
+    const data = await response.json();
+    const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parsed = textContent ? JSON.parse(textContent) : null;
+    res.json({ success: true, data: parsed });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 6. AI Semantic Project Search Engine
+app.post("/api/ai-search", async (req, res) => {
+  try {
+    const { query, results } = req.body || {};
+    const apiKey = getGeminiApiKey();
+
+    if (!apiKey) {
+      return res.status(200).json({ success: false, reason: "no_gemini_key_configured" });
+    }
+
+    const prompt = `You are the INNOVEXA AI Search Synthesis Agent.
+Summarize the retrieved community innovation projects for query "${query}".
+Retrieved innovations:
+${JSON.stringify(results || [], null, 2)}
+
+Return strict JSON conforming to:
+{
+  "summary": "2-3 sentence overview of findings for this query",
+  "key_topics": ["topic1", "topic2"],
+  "common_technologies": ["tech1", "tech2"],
+  "common_approaches": ["approach1", "approach2"],
+  "potential_gaps": ["gap1", "gap2"]
+}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.1
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      return res.status(200).json({ success: false, reason: "gemini_api_error" });
+    }
+
+    const data = await response.json();
+    const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parsed = textContent ? JSON.parse(textContent) : null;
+    res.json({ success: true, data: parsed });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Dynamic Render Port binding
 const PORT = process.env.PORT || 5000;
 

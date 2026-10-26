@@ -321,6 +321,13 @@ export const AdminPage: React.FC = () => {
                   <span className="text-[#34A853] font-bold">Connected • RLS Active</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-innovexa-border">
+                  <span className="text-[#8E90A2]">Express API Backend (Render)</span>
+                  <span className="text-[#34A853] font-bold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] animate-pulse"></span>
+                    <span>inno-backend-0pfj.onrender.com • Online</span>
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-innovexa-border">
                   <span className="text-[#8E90A2]">Google Gemini AI Engine</span>
                   <span className="text-[#34A853] font-bold">Active (Grounding Enabled)</span>
                 </div>

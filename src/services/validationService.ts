@@ -10,6 +10,7 @@ import {
   ValidationCycleHistory
 } from '../types/validation';
 import { SEED_REVIEWS } from '../data/seedData';
+import { getApiUrl } from '../lib/apiConfig';
 
 const STORAGE_AI_ANALYSES = 'innovexa_review_ai_analyses';
 const STORAGE_IMPROVEMENTS = 'innovexa_project_improvements';
@@ -141,7 +142,7 @@ export const validationService = {
    */
   async analyzeIndividualReviewAI(project: Project, review: SmartReview): Promise<ReviewAIAnalysis | null> {
     try {
-      const res = await fetch('/api/ai-review-analyze', {
+      const res = await fetch(getApiUrl('/api/ai-review-analyze'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project, review })
@@ -406,7 +407,7 @@ export const validationService = {
     // 2. Call AI validation aggregate endpoint for rich clusters and recommendations
     let aiData: any = null;
     try {
-      const res = await fetch('/api/ai-validation-aggregate', {
+      const res = await fetch(getApiUrl('/api/ai-validation-aggregate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

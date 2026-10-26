@@ -1,5 +1,6 @@
 import { Review } from '../types/database';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getApiUrl } from '../lib/apiConfig';
 
 // ====================================================
 // TYPES & INTERFACES FOR AI PROJECT ANALYZER
@@ -943,7 +944,7 @@ export async function analyzeProjectWithAI(
   }
 
   try {
-    const response = await fetch('/api/ai-project-analyzer', {
+    const response = await fetch(getApiUrl('/api/ai-project-analyzer'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

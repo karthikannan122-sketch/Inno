@@ -63,10 +63,10 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full min-w-0 overflow-hidden">
       
       {/* ── Top Alert Banner: Existing Solutions Detected & Uniqueness Score ── */}
-      <div className="bg-gradient-to-r from-[#181924] to-[#25283B] text-white p-6 sm:p-7 rounded-3xl border border-[#3E4259] shadow-card space-y-4">
+      <div className="bg-gradient-to-r from-[#181924] to-[#25283B] text-white p-6 sm:p-7 rounded-3xl border border-[#3E4259] shadow-card space-y-4 max-w-full min-w-0 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -94,13 +94,13 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
           </div>
         </div>
 
-        <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-sans">
+        <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-sans break-words">
           {report.executiveMessage}
         </p>
       </div>
 
       {/* ── Section 1: Identified Similar Solutions Tabs & Deep Breakdown ── */}
-      <div className="bg-white rounded-3xl border border-[#E5E0D6] p-6 sm:p-7 shadow-card space-y-6">
+      <div className="bg-white rounded-3xl border border-[#E5E0D6] p-6 sm:p-7 shadow-card space-y-6 max-w-full min-w-0 overflow-hidden">
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#6875E8]">
@@ -116,7 +116,7 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
         </div>
 
         {/* Solution Selector Tabs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className={`grid grid-cols-1 ${isSubmissionMode ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-3'} gap-3`}>
           {report.similarSolutions.map((sol, idx) => {
             const isSelected = selectedSolutionIndex === idx;
             return (
@@ -124,7 +124,7 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
                 key={sol.id}
                 type="button"
                 onClick={() => setSelectedSolutionIndex(idx)}
-                className={`p-4 rounded-2xl border text-left transition-all space-y-2 ${
+                className={`p-4 rounded-2xl border text-left transition-all space-y-2 min-w-0 overflow-hidden ${
                   isSelected
                     ? 'bg-[#181924] text-white border-[#181924] shadow-card'
                     : 'bg-[#FCFAF6] text-[#181924] border-[#E5E0D6] hover:border-[#6875E8]'
@@ -145,7 +145,7 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
                   {sol.name}
                 </div>
 
-                <p className={`text-[11px] line-clamp-2 leading-relaxed ${
+                <p className={`text-[11px] line-clamp-2 leading-relaxed break-words ${
                   isSelected ? 'text-white/80' : 'text-[#555768]'
                 }`}>
                   {sol.similarityReason}
@@ -157,23 +157,28 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
 
         {/* Active Solution Detailed Breakdown Card */}
         {activeSolution && (
-          <div className="p-6 bg-[#FAF8F5] rounded-2xl border border-[#E5E0D6] space-y-5 animate-in fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E0D6] pb-4">
-              <div>
+          <div className="p-5 sm:p-6 bg-[#FAF8F5] rounded-2xl border border-[#E5E0D6] space-y-4 animate-in fade-in max-w-full min-w-0 overflow-hidden shadow-subtle">
+            <div className="flex flex-col gap-3.5 border-b border-[#E5E0D6] pb-4 max-w-full min-w-0">
+              <div className="min-w-0 space-y-1">
                 <div className="text-[10px] font-mono uppercase font-bold text-[#E8B653]">
                   DEEP SOLUTION ANALYSIS
                 </div>
-                <h5 className="font-serif text-xl font-bold text-[#181924]">
+                <h5 className="font-serif text-xl font-bold text-[#181924] break-words">
                   {activeSolution.name}
                 </h5>
-                <p className="text-xs text-[#555768] mt-0.5">
+                <p className="text-xs text-[#555768] mt-0.5 break-words line-clamp-3 leading-relaxed">
                   {activeSolution.description}
                 </p>
               </div>
 
-              <div className="p-3 bg-white rounded-xl border border-[#E5E0D6] text-xs font-mono shrink-0">
-                <span className="text-[#8E90A2] block text-[10px] uppercase">Similarity Reason:</span>
-                <strong className="text-[#181924] text-[11px]">{activeSolution.similarityReason}</strong>
+              {/* Similarity Reason Box - cleanly contained inside card */}
+              <div className="p-3.5 bg-white rounded-xl border border-[#E5E0D6] text-xs font-mono max-w-full min-w-0 break-words shadow-subtle space-y-1">
+                <span className="text-[#8E90A2] block text-[10px] uppercase font-bold tracking-wider">
+                  Similarity Reason:
+                </span>
+                <p className="text-[#181924] text-[11px] font-semibold break-words leading-relaxed">
+                  {activeSolution.similarityReason}
+                </p>
               </div>
             </div>
 
@@ -233,9 +238,9 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
                       const targetId = activeSolution.id.replace('sim-wp-', '');
                       routerNavigate(`/explore?compare=${project.id},${targetId}`);
                     }}
-                    className="px-4 py-2 rounded-xl bg-[#E66F82] hover:bg-[#d65e71] text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#E66F82] hover:bg-[#d65e71] text-white font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm break-words text-center"
                   >
-                    <Scale className="w-3.5 h-3.5" />
+                    <Scale className="w-3.5 h-3.5 shrink-0" />
                     <span>Compare Side-by-Side with {activeSolution.name} →</span>
                   </button>
                 </div>
@@ -259,53 +264,53 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 ${isSubmissionMode ? 'xl:grid-cols-3' : 'md:grid-cols-3'} gap-4`}>
           {report.differentiatorStrategies.map((strat, sIdx) => (
             <div
               key={sIdx}
-              className="p-5 bg-[#FAF8F5] rounded-2xl border border-[#E5E0D6] flex flex-col justify-between space-y-4 shadow-subtle hover:border-[#6875E8] transition-all"
+              className="p-5 bg-[#FAF8F5] rounded-2xl border border-[#E5E0D6] flex flex-col justify-between space-y-4 shadow-subtle hover:border-[#6875E8] transition-all min-w-0 overflow-hidden"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#6875E8]/10 text-[#6875E8]">
+              <div className="space-y-2 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#6875E8]/10 text-[#6875E8] truncate">
                     {strat.badge}
                   </span>
-                  <span className="text-[10px] font-mono text-[#8E90A2]">
+                  <span className="text-[10px] font-mono text-[#8E90A2] shrink-0">
                     STRATEGY {sIdx + 1}
                   </span>
                 </div>
 
-                <h5 className="font-serif font-bold text-base text-[#181924]">
+                <h5 className="font-serif font-bold text-base text-[#181924] break-words">
                   {strat.title}
                 </h5>
 
-                <p className="text-xs text-[#555768] leading-relaxed">
+                <p className="text-xs text-[#555768] leading-relaxed break-words">
                   {strat.description}
                 </p>
 
-                <div className="p-3 bg-white rounded-xl border border-[#E5E0D6] text-[11px] font-mono text-[#181924]">
+                <div className="p-3 bg-white rounded-xl border border-[#E5E0D6] text-[11px] font-mono text-[#181924] break-words">
                   <strong className="text-[#6875E8] block mb-0.5">Execution Hook:</strong>
                   {strat.actionableHook}
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex items-center gap-2">
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0">
                 {onApplyDifferentiation && (
                   <button
                     type="button"
                     onClick={() => handleAdoptStrategy(`${strat.description} ${strat.actionableHook}`, sIdx)}
-                    className="flex-1 py-2 px-3 rounded-xl bg-[#181924] hover:bg-[#6875E8] text-white text-[10px] font-mono font-bold transition-all shadow-subtle flex items-center justify-center gap-1.5"
+                    className="flex-1 min-w-0 py-2.5 px-3 rounded-xl bg-[#181924] hover:bg-[#6875E8] text-white text-[11px] font-mono font-bold transition-all shadow-subtle flex items-center justify-center gap-1.5 overflow-hidden"
                   >
                     {adoptedIndex === sIdx ? (
                       <>
-                        <Check className="w-3 h-3 text-[#4FA89B]" />
-                        <span>ADOPTED TO UVP!</span>
+                        <Check className="w-3.5 h-3.5 text-[#4FA89B] shrink-0" />
+                        <span className="truncate">ADOPTED TO UVP!</span>
                       </>
                     ) : (
                       <>
-                        <Zap className="w-3 h-3" />
-                        <span>APPLY TO UVP</span>
+                        <Zap className="w-3.5 h-3.5 text-[#E8B653] shrink-0" />
+                        <span className="truncate">APPLY TO UVP</span>
                       </>
                     )}
                   </button>
@@ -314,10 +319,11 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
                 <button
                   type="button"
                   onClick={() => handleCopyText(`${strat.title}: ${strat.description} - ${strat.actionableHook}`, sIdx)}
-                  className="py-2 px-3 rounded-xl bg-white hover:bg-[#E5E0D6] border border-[#E5E0D6] text-[#181924] text-[10px] font-mono font-bold transition-all"
+                  className="py-2.5 px-3 rounded-xl bg-white hover:bg-[#E5E0D6] border border-[#E5E0D6] text-[#181924] text-[11px] font-mono font-bold transition-all shrink-0 flex items-center justify-center gap-1.5"
                   title="Copy strategy text"
                 >
                   {copiedIndex === sIdx ? <Check className="w-3.5 h-3.5 text-[#4FA89B]" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[10px] sm:hidden font-sans">Copy</span>
                 </button>
               </div>
             </div>
@@ -336,8 +342,8 @@ export const SimilarSolutionsDifferentiator: React.FC<SimilarSolutionsDifferenti
           </h4>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs font-sans">
+        <div className="w-full overflow-x-auto rounded-2xl border border-[#E5E0D6] scrollbar-thin">
+          <table className="min-w-[580px] w-full text-left border-collapse text-xs font-sans">
             <thead>
               <tr className="border-b border-[#E5E0D6] text-[11px] font-mono font-bold text-[#8E90A2] uppercase">
                 <th className="py-3 px-4 w-1/4">Evaluation Dimension</th>

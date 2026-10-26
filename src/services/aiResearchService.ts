@@ -2,6 +2,7 @@ import { Project } from '../types/database';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { SEED_PROJECTS } from '../data/seedData';
 import { OPEN_SOURCE_TOOLS } from '../data/openSourceDirectory';
+import { getApiUrl } from '../lib/apiConfig';
 
 export interface ExternalSourceItem {
   title: string;
@@ -1035,7 +1036,7 @@ export async function executeAIResearch(
   let hasLiveWebGrounding = false;
 
   try {
-    const response = await fetch('/api/ai-research', {
+    const response = await fetch(getApiUrl('/api/ai-research'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

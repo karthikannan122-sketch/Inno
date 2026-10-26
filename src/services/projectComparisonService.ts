@@ -2,6 +2,7 @@ import { Project, Review, ProjectUniquenessReport, SimilarSolutionComparison } f
 import { OPEN_SOURCE_TOOLS } from '../data/openSourceDirectory';
 import { SEED_PROJECTS, SEED_REVIEWS } from '../data/seedData';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { getApiUrl } from '../lib/apiConfig';
 
 export interface ProjectComparisonItem {
   project: Project;
@@ -406,7 +407,7 @@ export async function fetchAndBuildComparison(
     let aiError: string | null = null;
 
     try {
-      const response = await fetch('/api/ai-compare', {
+      const response = await fetch(getApiUrl('/api/ai-compare'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

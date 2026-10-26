@@ -142,6 +142,7 @@ export interface Project {
   github_url?: string;
   demo_url?: string;
   cover_image_url?: string;
+  gallery_images?: string[];
   status: ProjectStatus;
   validation_status?: ValidationStage;
   visibility: 'public' | 'unlisted' | 'private';

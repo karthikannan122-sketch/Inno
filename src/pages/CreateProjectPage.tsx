@@ -17,7 +17,10 @@ import {
   Zap,
   HelpCircle,
   Eye,
-  FileText
+  FileText,
+  Camera,
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useProjects } from '../context/ProjectContext';
@@ -26,6 +29,7 @@ import { SlideUp, FadeIn } from '../components/common/MotionWrapper';
 import { Badge, CategoryBadge, TypeBadge } from '../components/common/Badge';
 import { SimilarSolutionsDifferentiator } from '../components/projects/SimilarSolutionsDifferentiator';
 import { ProjectVoteButtons } from '../components/projects/ProjectVoteButtons';
+import { ProjectPhotoUploader } from '../components/projects/ProjectPhotoUploader';
 
 interface CreateProjectPageProps {
   onSuccess?: (projectId: string) => void;
@@ -82,6 +86,10 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
   const [githubUrl, setGithubUrl] = useState('');
   const [demoUrl, setDemoUrl] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80');
+  const [galleryImages, setGalleryImages] = useState<string[]>([
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80'
+  ]);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   const categories = [
     'Technology',
@@ -118,7 +126,14 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
         }
         if (existing.github_url) setGithubUrl(existing.github_url);
         if (existing.demo_url) setDemoUrl(existing.demo_url);
-        if (existing.cover_image_url) setCoverImageUrl(existing.cover_image_url);
+        if (existing.cover_image_url) {
+          setCoverImageUrl(existing.cover_image_url);
+        }
+        if (existing.gallery_images && existing.gallery_images.length > 0) {
+          setGalleryImages(existing.gallery_images);
+        } else if (existing.cover_image_url) {
+          setGalleryImages([existing.cover_image_url]);
+        }
       }
     } else {
       // Check if arriving from AI Research prefill
@@ -162,6 +177,11 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
       setDifferentiation('Unlike generic Notion templates or Anki, StudyFlow automatically extracts high-yield exam concepts directly from course slides.');
       setHasLiveLink('yes');
       setLiveUrl('https://studyflow-preview.app');
+      setCoverImageUrl('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1000&auto=format&fit=crop&q=80');
+      setGalleryImages([
+        'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1000&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1000&auto=format&fit=crop&q=80'
+      ]);
     } else if (type === 'sustainability') {
       setProblemTitle('Neighborhood grocery stores discard edible produce daily due to lack of local discounted distribution.');
       setProblemDescription('Urban bakeries and grocers discard up to 30% of daily perishable goods before expiration because standard retail pricing cannot adapt dynamically.');
@@ -175,6 +195,11 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
       setDifferentiation('Zero upfront hardware fees for merchants with instant SMS inventory alerts.');
       setHasLiveLink('yes');
       setLiveUrl('https://foodrescue-hub.org');
+      setCoverImageUrl('https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=1000&auto=format&fit=crop&q=80');
+      setGalleryImages([
+        'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=1000&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1000&auto=format&fit=crop&q=80'
+      ]);
     } else if (type === 'ai') {
       setProblemTitle('Developers spend excessive time synthesizing unstructured user feedback into actionable Jira roadmaps.');
       setProblemDescription('Product engineering teams receive hundreds of discord messages, tweets, and support tickets with no semantic deduplication or severity rating.');
@@ -188,6 +213,11 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
       setDifferentiation('Semantic clustering with built-in confidence scoring and contradiction detection.');
       setHasLiveLink('no');
       setGithubUrl('https://github.com/innovexa/synth-signal');
+      setCoverImageUrl('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80');
+      setGalleryImages([
+        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1000&auto=format&fit=crop&q=80'
+      ]);
     }
     setError(null);
   };
@@ -252,6 +282,7 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
       github_url: githubUrl.trim() || undefined,
       demo_url: demoUrl.trim() || undefined,
       cover_image_url: coverImageUrl,
+      gallery_images: galleryImages.length > 0 ? galleryImages : [coverImageUrl],
       status,
       visibility: 'public' as const,
       tags: tags.length > 0 ? tags : [category, projectType]
@@ -340,45 +371,47 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
             </div>
 
             {/* Stepper Buttons Row */}
-            <div className="grid grid-cols-7 gap-1.5 sm:gap-2 pt-1">
-              {STEPS.map((s) => {
-                const isActive = s.number === step;
-                const isCompleted = s.number < step;
-                const isClickable = s.number <= maxVisitedStep || s.number === step + 1;
+            <div className="w-full overflow-x-auto scrollbar-none pb-1">
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 pt-1 min-w-[560px] sm:min-w-0">
+                {STEPS.map((s) => {
+                  const isActive = s.number === step;
+                  const isCompleted = s.number < step;
+                  const isClickable = s.number <= maxVisitedStep || s.number === step + 1;
 
-                return (
-                  <button
-                    key={s.number}
-                    type="button"
-                    disabled={!isClickable}
-                    onClick={() => handleStepClick(s.number)}
-                    className={`py-2 px-1 rounded-xl text-left transition-all flex flex-col items-center sm:items-start justify-center gap-1 border ${
-                      isActive 
-                        ? 'bg-innovexa-ink text-white border-innovexa-ink shadow-sm ring-2 ring-innovexa-coral/30' 
-                        : isCompleted
-                        ? 'bg-emerald-50/70 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
-                        : isClickable
-                        ? 'bg-white border-innovexa-border text-innovexa-ink hover:border-innovexa-ink-light'
-                        : 'bg-innovexa-bg-subtle/30 border-transparent text-innovexa-ink-light opacity-50 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
+                  return (
+                    <button
+                      key={s.number}
+                      type="button"
+                      disabled={!isClickable}
+                      onClick={() => handleStepClick(s.number)}
+                      className={`py-2 px-1.5 sm:px-2 rounded-xl text-left transition-all flex items-center justify-center sm:justify-start gap-1.5 border min-w-0 w-full overflow-hidden ${
                         isActive 
-                          ? 'bg-innovexa-coral text-white' 
-                          : isCompleted 
-                          ? 'bg-emerald-500 text-white' 
-                          : 'bg-innovexa-bg text-innovexa-ink-muted'
-                      }`}>
-                        {isCompleted ? <Check className="w-2.5 h-2.5" /> : s.number}
-                      </span>
-                      <span className="hidden md:inline font-mono text-[10px] font-bold uppercase truncate">
-                        {s.shortLabel}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
+                          ? 'bg-innovexa-ink text-white border-innovexa-ink shadow-sm ring-2 ring-innovexa-coral/30' 
+                          : isCompleted
+                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                          : isClickable
+                          ? 'bg-white border-innovexa-border text-innovexa-ink hover:border-innovexa-ink-light'
+                          : 'bg-innovexa-bg-subtle/30 border-transparent text-innovexa-ink-light opacity-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0 w-full justify-center sm:justify-start">
+                        <span className={`w-4 h-4 shrink-0 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
+                          isActive 
+                            ? 'bg-innovexa-coral text-white' 
+                            : isCompleted 
+                            ? 'bg-emerald-500 text-white' 
+                            : 'bg-innovexa-bg text-innovexa-ink-muted'
+                        }`}>
+                          {isCompleted ? <Check className="w-2.5 h-2.5" /> : s.number}
+                        </span>
+                        <span className="hidden md:inline font-mono text-[10px] font-bold uppercase truncate min-w-0">
+                          {s.shortLabel}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -619,6 +652,17 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
                         className="w-full p-3.5 bg-innovexa-bg-subtle/50 focus:bg-white border border-innovexa-border focus:border-innovexa-purple rounded-2xl text-xs text-innovexa-ink outline-none transition-all resize-none"
                       />
                     </div>
+
+                    {/* Project Photos & Visuals Upload Section */}
+                    <div className="pt-5 border-t border-innovexa-border-subtle">
+                      <ProjectPhotoUploader
+                        coverImageUrl={coverImageUrl}
+                        onCoverImageChange={setCoverImageUrl}
+                        galleryImages={galleryImages}
+                        onGalleryImagesChange={setGalleryImages}
+                        category={category}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -670,20 +714,125 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-mono font-semibold text-innovexa-ink uppercase">
-                        Unique Value Proposition (UVP)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g., Reduces study schedule planning from 4 hours to 10 minutes."
-                        value={valueProposition}
-                        onChange={(e) => setValueProposition(e.target.value)}
-                        className="w-full p-3.5 bg-innovexa-bg-subtle/50 focus:bg-white border border-innovexa-border focus:border-innovexa-amber rounded-2xl text-xs text-innovexa-ink outline-none transition-all font-medium"
-                      />
+                  <div className="space-y-5">
+                    
+                    {/* Unique Value Proposition (UVP) with Formula & Quick Options */}
+                    <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-innovexa-border space-y-4 min-w-0 overflow-hidden">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-innovexa-border-subtle pb-3 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <label className="text-[11px] font-mono font-bold text-innovexa-ink uppercase shrink-0">
+                            Unique Value Proposition (UVP)
+                          </label>
+                          <span className="text-[9px] font-mono text-innovexa-amber font-bold bg-innovexa-amber/15 px-2 py-0.5 rounded-md border border-innovexa-amber/30 shrink-0">
+                            High-Impact Formula
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-innovexa-ink-muted truncate">
+                          Target Persona • Measurable Value • Moat
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <textarea
+                          rows={3}
+                          placeholder="e.g., Cuts weekly study schedule planning from 4 hours to 10 minutes while improving active exam recall by 40%."
+                          value={valueProposition}
+                          onChange={(e) => setValueProposition(e.target.value)}
+                          className="w-full p-3.5 bg-white border border-innovexa-border focus:border-innovexa-amber focus:ring-1 focus:ring-innovexa-amber rounded-xl text-xs text-innovexa-ink outline-none transition-all resize-none font-medium leading-relaxed"
+                        />
+                        <div className="flex items-center justify-between text-[10px] font-mono text-innovexa-ink-muted px-1">
+                          <span className="truncate pr-2">Tip: Quantify your value (e.g., time saved, cost eliminated, % faster).</span>
+                          <span className="shrink-0">{valueProposition.length} chars</span>
+                        </div>
+                      </div>
+
+                      {/* Selectable UVP Framework Options */}
+                      <div className="space-y-2 pt-2 border-t border-innovexa-border-subtle">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono font-bold uppercase text-innovexa-ink-muted tracking-wider">
+                            Select a High-Signal UVP Framework:
+                          </span>
+                          {valueProposition && (
+                            <button
+                              type="button"
+                              onClick={() => setValueProposition('')}
+                              className="text-[10px] font-mono text-red-600 hover:underline shrink-0"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                          {[
+                            {
+                              id: 'speed',
+                              icon: '⚡',
+                              title: '10x Speed / Efficiency',
+                              uvpText: `Cuts task completion time by 80% with automated workflows for ${targetAudience || 'users'}.`
+                            },
+                            {
+                              id: 'cost',
+                              icon: '💰',
+                              title: 'Cost Disruption',
+                              uvpText: `Delivers enterprise-grade capabilities at 1/5th the traditional operational cost.`
+                            },
+                            {
+                              id: 'privacy',
+                              icon: '🔒',
+                              title: 'Privacy & Zero Lock-in',
+                              uvpText: `100% private data retention with open standards and zero vendor lock-in.`
+                            },
+                            {
+                              id: 'precision',
+                              icon: '🎯',
+                              title: 'Domain Precision',
+                              uvpText: `Specialized vertical logic eliminating 90% of friction compared to generic tools.`
+                            },
+                            {
+                              id: 'autonomous',
+                              icon: '🧠',
+                              title: 'Autonomous Intelligence',
+                              uvpText: `Turns unstructured signals into prioritized, verified execution roadmaps automatically.`
+                            },
+                            {
+                              id: 'community',
+                              icon: '🤝',
+                              title: 'Crowdsourced Trust',
+                              uvpText: `Decentralized peer-validation network ensuring verified, bias-free evaluations.`
+                            }
+                          ].map((opt) => {
+                            const isMatch = valueProposition === opt.uvpText;
+                            return (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => setValueProposition(opt.uvpText)}
+                                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 min-w-0 overflow-hidden ${
+                                  isMatch
+                                    ? 'bg-innovexa-amber/15 border-innovexa-amber text-innovexa-ink shadow-sm ring-1 ring-innovexa-amber'
+                                    : 'bg-white hover:bg-innovexa-bg-subtle/50 border-innovexa-border text-innovexa-ink-muted hover:text-innovexa-ink'
+                                }`}
+                              >
+                                <span className="text-base shrink-0 mt-0.5">{opt.icon}</span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-mono text-[10px] font-bold text-innovexa-ink flex items-center justify-between gap-1">
+                                    <span className="truncate">{opt.title}</span>
+                                    {isMatch && <Check className="w-3 h-3 text-innovexa-amber shrink-0" />}
+                                  </div>
+                                  <p className="text-[10px] line-clamp-2 mt-0.5 leading-snug">
+                                    {opt.uvpText}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                     </div>
 
+                    {/* Differentiation Against Alternatives */}
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-mono font-semibold text-innovexa-ink uppercase">
                         Differentiation Against Alternatives
@@ -794,6 +943,17 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
                       </div>
                     </div>
                   )}
+
+                  {/* Visual Media & Prototype Screenshots */}
+                  <div className="pt-5 border-t border-innovexa-border-subtle">
+                    <ProjectPhotoUploader
+                      coverImageUrl={coverImageUrl}
+                      onCoverImageChange={setCoverImageUrl}
+                      galleryImages={galleryImages}
+                      onGalleryImagesChange={setGalleryImages}
+                      category={category}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -917,23 +1077,58 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
 
               {/* Dynamic Mock Project Card */}
               <div className="rounded-2xl border border-innovexa-border overflow-hidden bg-innovexa-bg-subtle/30 shadow-subtle space-y-3">
-                <div className="h-32 w-full bg-innovexa-bg-subtle overflow-hidden relative">
+                <div 
+                  className="h-36 w-full bg-innovexa-bg-subtle overflow-hidden relative group cursor-pointer"
+                  onClick={() => setShowPhotoModal(true)}
+                  title="Click to change project photo"
+                >
                   <img
                     src={coverImageUrl}
                     alt="Cover preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
                   <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
                     <TypeBadge type={projectType} />
                     <CategoryBadge category={category} />
                   </div>
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                    <h4 className="font-serif text-lg font-bold text-white tracking-tight drop-shadow-sm truncate">
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-end justify-between gap-2">
+                    <h4 className="font-serif text-lg font-bold text-white tracking-tight drop-shadow-sm truncate min-w-0">
                       {title || 'Your Innovation Title'}
                     </h4>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPhotoModal(true);
+                      }}
+                      className="text-[10px] font-mono font-bold bg-white/90 hover:bg-white text-innovexa-ink px-2.5 py-1 rounded-lg shadow-sm shrink-0 flex items-center gap-1 transition-all"
+                    >
+                      <Camera className="w-3 h-3 text-innovexa-coral" />
+                      <span>Photos</span>
+                    </button>
                   </div>
                 </div>
+
+                {/* Attached Gallery Strip in Preview */}
+                {galleryImages.length > 1 && (
+                  <div className="px-4 py-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none border-b border-innovexa-border-subtle pb-2">
+                    <span className="text-[9px] font-mono text-innovexa-ink-muted uppercase shrink-0">Attached:</span>
+                    {galleryImages.map((img, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setCoverImageUrl(img)}
+                        className={`w-7 h-7 rounded-lg overflow-hidden shrink-0 border transition-all ${
+                          coverImageUrl === img ? 'border-innovexa-coral ring-2 ring-innovexa-coral' : 'border-innovexa-border opacity-70 hover:opacity-100'
+                        }`}
+                        title="Click to set as active cover"
+                      >
+                        <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="p-4 space-y-3">
                   <div>
@@ -970,7 +1165,7 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
                       <span className="text-[10px] font-mono text-innovexa-amber font-bold uppercase block">
                         Value Proposition:
                       </span>
-                      <p className="text-[11px] text-innovexa-ink-muted line-clamp-2">
+                      <p className="text-[11px] text-innovexa-ink font-medium line-clamp-2">
                         {valueProposition}
                       </p>
                     </div>
@@ -985,14 +1180,61 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({
                 </div>
               </div>
 
-              <div className="text-[11px] font-mono text-innovexa-ink-muted text-center">
-                Updates automatically as you type each page.
+              <div className="text-[11px] font-mono text-innovexa-ink-muted text-center flex items-center justify-center gap-2">
+                <span>Updates automatically as you type each page.</span>
               </div>
             </div>
           </SlideUp>
         </div>
 
       </div>
+
+      {/* Direct Photo Management Modal */}
+      {showPhotoModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowPhotoModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-in fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-innovexa-border-subtle pb-3">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-innovexa-coral" />
+                <h3 className="font-serif text-xl font-bold text-innovexa-ink">
+                  Project Photos & Visual Identity
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPhotoModal(false)}
+                className="p-1.5 rounded-xl hover:bg-innovexa-bg text-innovexa-ink-muted hover:text-innovexa-ink"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <ProjectPhotoUploader
+              coverImageUrl={coverImageUrl}
+              onCoverImageChange={setCoverImageUrl}
+              galleryImages={galleryImages}
+              onGalleryImagesChange={setGalleryImages}
+              category={category}
+            />
+
+            <div className="pt-3 border-t border-innovexa-border-subtle flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPhotoModal(false)}
+                className="px-6 py-2.5 rounded-full bg-innovexa-ink hover:bg-black text-white font-mono text-xs font-bold transition-all"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

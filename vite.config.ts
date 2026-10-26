@@ -1137,5 +1137,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_BACKEND_URL || 'https://inno-backend-0pfj.onrender.com',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 })

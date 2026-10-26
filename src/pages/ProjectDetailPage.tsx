@@ -406,6 +406,41 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </div>
             </div>
 
+            {/* Visual Assets & Prototype Gallery */}
+            {project.gallery_images && project.gallery_images.length > 0 && (
+              <div className="bg-white rounded-3xl border border-innovexa-border p-6 lg:p-8 space-y-4 shadow-subtle">
+                <div className="flex items-center justify-between border-b border-innovexa-border-subtle pb-3">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-innovexa-coral uppercase">
+                      VISUAL ASSETS & PROTOTYPES ({project.gallery_images.length})
+                    </span>
+                    <h4 className="font-serif text-xl font-bold text-innovexa-ink">
+                      Project Screenshots & Photos
+                    </h4>
+                  </div>
+                  <Badge variant="amber">ATTACHED MEDIA</Badge>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {project.gallery_images.map((imgUrl, gIdx) => (
+                    <div
+                      key={gIdx}
+                      className="group relative h-28 rounded-2xl overflow-hidden border border-innovexa-border hover:border-innovexa-coral transition-all shadow-subtle cursor-pointer"
+                      onClick={() => window.open(imgUrl, '_blank')}
+                      title="Click to view full image"
+                    >
+                      <img src={imgUrl} alt={`Screenshot ${gIdx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute bottom-1.5 left-2 right-2 text-[9px] font-mono text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between">
+                        <span>Photo #{gIdx + 1}</span>
+                        <span>View ↗</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Connected Related Projects Cluster */}
             <div className="bg-white rounded-3xl border border-innovexa-border p-6 lg:p-8 space-y-4 shadow-subtle">
               <div className="flex items-center justify-between border-b border-innovexa-border-subtle pb-3">
